@@ -3,6 +3,11 @@
 A small Chrome extension that shows **Fluent Support** ticket details right inside your **FluentBoards** task page —
 even when the two plugins live on completely different sites.
 
+<p align="center">
+  <img src="assets/screenshot.png" alt="Ticket sidebar on a FluentBoards task" width="440">
+  <br><sub>The ticket sidebar (sample data)</sub>
+</p>
+
 ## The use case
 
 - **Site A** runs FluentBoards (your project/task boards).
