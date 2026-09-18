@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Boards ↔ Support Tickets",
+  "version": "0.2.0",
+  "description": "Shows Fluent Support ticket details inside FluentBoards task pages.",
+  "permissions": ["storage"],
+  "host_permissions": ["https://support.wpmanageninja.com/*"],
+  "background": { "service_worker": "background.js" },
+  "options_page": "options.html",
+  "content_scripts": [
+    {
+      "matches": ["https://lounge.authlab.io/*"],
+      "js": ["inject.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["https://lounge.authlab.io/*"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ]
+}

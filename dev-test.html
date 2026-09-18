@@ -1,0 +1,9 @@
+<!doctype html><meta charset="utf-8"><body>
+<p><a href="https://support.wpmanageninja.com/#/tickets/177567/view">https://support.wpmanageninja.com/#/tickets/177567</a><span>6 comments</span></p>
+<p>dup: https://support.wpmanageninja.com/#/tickets/177567/view and https://support.wpmanageninja.com/#/tickets/160010/view</p>
+<script>
+const T=(id)=>({ok:true,data:{ticket:{id,title:'Ticket '+id+' with a fairly long title to check wrapping behaviour',status:id=='160010'?'closed':'active',priority:'normal',product:{title:'FluentCRM'},customer:{full_name:'Jane Doe',email:'jane@example.com'},agent:{full_name:'Ashik'},created_at:'2026-09-17T21:05:31+00:00',updated_at:'2026-09-18T01:21:45+00:00',content:'<p>Hello<br>world <img src=x onerror=alert(1)></p>'},responses:[{content:'<p>Reply</p>',conversation_type:'response',person:{full_name:'Ashik',person_type:'agent'},created_at:'2026-09-18T01:21:45+00:00'},{content:'internal',conversation_type:'note',person:{full_name:'Anik',person_type:'agent'},created_at:'2026-09-18T01:21:45+00:00'}]}});
+window.chrome={runtime:{sendMessage:async(m)=>m.id=='999'?{ok:false,error:'No query results'}:T(m.id)},storage:{local:{get:async(d)=>d,set:async()=>{}}}};
+</script>
+<script src="content.js"></script>
+</body>

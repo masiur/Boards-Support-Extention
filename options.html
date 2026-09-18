@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Boards ↔ Support Tickets</title>
+  <style>
+    body { font: 14px/1.5 system-ui, sans-serif; max-width: 460px; margin: 32px auto; padding: 0 16px; }
+    label { display: block; margin: 10px 0; }
+    input[type=text], input[type=password] { width: 100%; padding: 6px 8px; box-sizing: border-box; }
+    fieldset { margin: 12px 0; }
+    button { padding: 6px 14px; }
+    #status { margin-left: 10px; color: #2a7; }
+    small { color: #666; }
+  </style>
+</head>
+<body>
+  <h2>Support authentication</h2>
+  <label><input type="radio" name="mode" value="cookie"> Browser login <small>(must be logged in to support.wpmanageninja.com)</small></label>
+  <label><input type="radio" name="mode" value="app_password"> Application password</label>
+  <fieldset id="creds">
+    <label>WP username <input type="text" id="username" autocomplete="off"></label>
+    <label>Application password <input type="password" id="appPassword" autocomplete="off"></label>
+    <small>Create one in WP Admin → Users → Profile → Application Passwords. Stored in this browser only.</small>
+  </fieldset>
+  <button id="save">Save</button><span id="status"></span>
+  <p style="margin-top:32px;color:#999;font-size:12px;text-align:center">Boards ↔ Support · by <b style="color:#4b3fb5">Masiur</b></p>
+  <script src="options.js"></script>
+</body>
+</html>
