@@ -4,8 +4,8 @@ A small Chrome extension that shows **Fluent Support** ticket details right insi
 even when the two plugins live on completely different sites.
 
 <p align="center">
-  <img src="assets/screenshot.png" alt="Ticket sidebar on a FluentBoards task" width="440">
-  <br><sub>The ticket sidebar (sample data)</sub>
+  <img src="assets/screenshot.png" alt="Ticket drawer on a FluentBoards task" width="820">
+  <br><sub>The ticket drawer, expanded (sample data)</sub>
 </p>
 
 ## The use case
@@ -17,7 +17,7 @@ Tasks on Site A often reference tickets on Site B — a link in the description,
 `https://site-b.com/#/tickets/177567/view`. Normally you'd open every link in a new tab, wait for the portal to load,
 read, and switch back.
 
-With this extension, just open the task. Every ticket linked in it is fetched and shown in a sidebar next to the task:
+With this extension, just open the task. Every ticket linked in it is fetched and shown in a drawer next to the task:
 title, status, priority, product, tags, customer, assigned agent, timestamps and the full conversation
 (customer messages, agent replies and internal notes).
 
@@ -27,9 +27,13 @@ No server-side integration, no plugin to install on either site, no API keys to 
 ## Features
 
 - Detects ticket links in the task description, comments and attachments
-- Multiple tickets per task — deduplicated, shown as collapsible cards
-- Full-height right sidebar, **resizable** by dragging its edge, collapsible to a small tab (both remembered)
-- Human-readable info: "2 days ago" with exact local time, colour-coded statuses, replies vs. internal notes
+- **Triage at a glance** — who replied last (customer or support agent) and when, how many times the customer and
+  agents have replied, and when the ticket was originally opened (date and time)
+- Multiple tickets per task — deduplicated, one tab per ticket, with a dot showing whose move it is
+  (amber = customer is waiting, green = waiting on customer)
+- Floating right **drawer**: drag its edge to resize, **expand** to a two-column view (summary + conversation),
+  or **minimize** to a small launcher that flags tickets waiting for an agent reply (all remembered)
+- Readable conversation: customer, agent and internal-note messages are clearly labelled, long messages fold behind "Show more"
 - Refresh button to refetch ticket data
 - Two auth modes: **browser login** (default, zero config) or **WordPress application password**
 
@@ -73,7 +77,7 @@ The two sites are currently set for the author's setup. To point it at yours, ch
 
 | File | Purpose |
 | --- | --- |
-| `content.js` | Finds ticket ids on the page and renders the sidebar |
+| `content.js` | Finds ticket ids on the page and renders the drawer |
 | `inject.js` | Page-world hook that reads ticket links from FluentBoards task API responses |
 | `background.js` | Authenticated requests to the Fluent Support REST API |
 | `options.html` / `options.js` | Auth settings |
@@ -82,9 +86,9 @@ The two sites are currently set for the author's setup. To point it at yours, ch
 ## Releasing
 
 ```bash
-git tag v0.2.0 && git push origin v0.2.0
-git archive --format=zip --prefix=boards-support-extension/ -o boards-support-extension-v0.2.0.zip v0.2.0
-gh release create v0.2.0 boards-support-extension-v0.2.0.zip --title "v0.2.0" --generate-notes
+git tag v0.3.0 && git push origin v0.3.0
+git archive --format=zip --prefix=boards-support-extension/ -o boards-support-extension-v0.3.0.zip v0.3.0
+gh release create v0.3.0 boards-support-extension-v0.3.0.zip --title "v0.3.0" --generate-notes
 ```
 
 Keep the tag in sync with `version` in `manifest.json`.

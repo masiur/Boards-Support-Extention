@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Boards ↔ Support Tickets",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Shows Fluent Support ticket details inside FluentBoards task pages.",
   "permissions": ["storage"],
   "host_permissions": ["https://support.wpmanageninja.com/*"],
