@@ -25,5 +25,6 @@ window.chrome = {
   storage: { local: { get: async (d) => ({ ui: { ...d.ui, expanded: location.search.includes('expanded'), collapsed: location.search.includes('collapsed') } }), set: async () => {} } }
 };
 </script>
-<script src="content.js"></script>
+<script src="drawer.js"></script>
+<script src="view-tickets.js"></script>
 </body>

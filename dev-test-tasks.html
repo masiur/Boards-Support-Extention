@@ -1,0 +1,31 @@
+<!doctype html><meta charset="utf-8"><body>
+<!-- Stubbed support-ticket page for UI testing: fake data, no network. Serve with `python3 -m http.server`. -->
+<p>Internal note: tracked in <a href="https://lounge.authlab.io/projects#/boards/2/tasks/23048-SMS-campaign-dynamic%2Fcustom-se">https://lounge.authlab.io/projects#/boards/2/tasks/23048-SMS-campaign-dynamic%2Fcustom-se</a>.</p>
+<p>Related: https://lounge.authlab.io/projects#/boards/2/tasks/23990-countdown-timer</p>
+<script>
+const ago = (h) => new Date(Date.now() - h * 3600e3).toISOString();
+const user = (n) => ({ display_name: n });
+const TASKS = {
+  '2/23048': { task: { id: 23048, title: 'SMS campaign on dynamic/custom segment only sends first batch', status: 'open', priority: 'high',
+      due_at: ago(-72), created_at: ago(30), updated_at: ago(3), board: { title: 'FluentCRM' }, stage: { title: 'In Progress' },
+      labels: [{ title: 'Bug', bg_color: '#fee2e2', color: '#991b1b' }, { title: 'Support', bg_color: '#dbeafe', color: '#1e40af' }],
+      assignees: [user('Alex Rivera'), user('Sam Lee')],
+      description: '<p>Reported via support ticket. The batch generator pages the audience with a keyset cursor ordered by id ASC, but dynamic segments already carry ORDER BY id DESC.</p><p>Result: only the first chunk of recipients is generated and the campaign never completes.</p><ul><li>Reproduce with a custom segment &gt; 500 contacts</li><li>Fix ordering in the batch query</li><li>Add regression test</li></ul>' },
+    total: 3,
+    comments: { data: [
+      { description: '<p>Fix is in review, should land in the next patch release.</p>', created_at: ago(3), user: user('Alex Rivera'), replies: [
+        { description: '<p>Great — I will let the customer know once it ships.</p>', created_at: ago(2), user: user('Sam Lee') } ] },
+      { description: '<p>Confirmed on staging with a 1,200 contact segment.</p>', created_at: ago(26), user: user('Sam Lee'), replies: [] }
+    ] } },
+  '2/23990': { task: { id: 23990, title: 'Countdown timer block', status: 'closed', priority: 'low', created_at: ago(900), updated_at: ago(200),
+      board: { title: 'FluentCRM' }, stage: { title: 'Done' }, labels: [{ title: 'Feature request', bg_color: '#dcfce7', color: '#166534' }], assignees: [], description: '' },
+    total: 0, comments: { data: [] } }
+};
+window.chrome = {
+  runtime: { sendMessage: async (m) => { const d = TASKS[m.boardId + '/' + m.taskId]; return d ? { ok: true, data: d } : { ok: false, error: 'Task not found' }; } },
+  storage: { local: { get: async (d) => ({ ui: { ...d.ui, expanded: location.search.includes('expanded'), collapsed: location.search.includes('collapsed') } }), set: async () => {} } }
+};
+</script>
+<script src="drawer.js"></script>
+<script src="view-tasks.js"></script>
+</body>

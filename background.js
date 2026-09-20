@@ -1,37 +1,40 @@
-const SUPPORT = 'https://support.wpmanageninja.com';
-const API = SUPPORT + '/wp-json/fluent-support/v2';
+const SITES = {
+  support: { base: 'https://support.wpmanageninja.com', api: '/wp-json/fluent-support/v2' },
+  // This site serves the WP REST API under /api instead of /wp-json.
+  boards: { base: 'https://lounge.authlab.io', api: '/api/fluent-boards/v2' }
+};
+const host = (site) => new URL(SITES[site].base).host;
+const nonces = {};
 
-let cachedNonce = null;
-
-async function getNonce(force) {
-  if (cachedNonce && !force) return cachedNonce;
+async function getNonce(site, force) {
+  if (nonces[site] && !force) return nonces[site];
   // WP core endpoint: returns a wp_rest nonce for the logged-in cookie user, "0" otherwise.
-  const res = await fetch(SUPPORT + '/wp-admin/admin-ajax.php?action=rest-nonce', { credentials: 'include' });
+  const res = await fetch(SITES[site].base + '/wp-admin/admin-ajax.php?action=rest-nonce', { credentials: 'include' });
   const text = (await res.text()).trim();
   if (!res.ok || !/^[a-f0-9]{10}$/.test(text)) {
-    throw new Error('Not logged in to support.wpmanageninja.com in this browser.');
+    throw new Error(`Not logged in to ${host(site)} in this browser.`);
   }
-  return (cachedNonce = text);
+  return (nonces[site] = text);
 }
 
-async function apiGet(path, settings, retry = true) {
+async function apiGet(site, path, auth, retry = true) {
   let init;
-  if (settings.mode === 'app_password') {
-    if (!settings.username || !settings.appPassword) {
-      throw new Error('Application password not configured. Open extension options.');
+  if (auth.mode === 'app_password') {
+    if (!auth.username || !auth.appPassword) {
+      throw new Error(`Application password for ${host(site)} not configured. Open extension options.`);
     }
     // Cookies must be omitted: a cookie session without nonce makes WP drop auth to guest.
     init = {
       credentials: 'omit',
-      headers: { Authorization: 'Basic ' + btoa(settings.username + ':' + settings.appPassword) }
+      headers: { Authorization: 'Basic ' + btoa(auth.username + ':' + auth.appPassword) }
     };
   } else {
-    init = { credentials: 'include', headers: { 'X-WP-Nonce': await getNonce(!retry) } };
+    init = { credentials: 'include', headers: { 'X-WP-Nonce': await getNonce(site, !retry) } };
   }
 
-  const res = await fetch(API + path, init);
-  if (res.status === 403 && settings.mode !== 'app_password' && retry) {
-    return apiGet(path, settings, false); // nonce likely expired
+  const res = await fetch(SITES[site].base + SITES[site].api + path, init);
+  if (res.status === 403 && auth.mode !== 'app_password' && retry) {
+    return apiGet(site, path, auth, false); // nonce likely expired
   }
   const body = await res.json().catch(() => null);
   if (!res.ok) {
@@ -40,16 +43,38 @@ async function apiGet(path, settings, retry = true) {
   return body;
 }
 
+async function getAuth(site) {
+  const s = await chrome.storage.local.get({ auth: null, mode: 'cookie', username: '', appPassword: '' });
+  if (s.auth && s.auth[site]) return s.auth[site];
+  // Settings saved before per-site auth existed apply to the support site.
+  return site === 'support' ? { mode: s.mode, username: s.username, appPassword: s.appPassword } : { mode: 'cookie' };
+}
+
+async function getTask(boardId, taskId) {
+  const auth = await getAuth('boards');
+  const base = `/projects/${boardId}/tasks/${taskId}`;
+  const [found, comments] = await Promise.all([
+    apiGet('boards', base, auth),
+    apiGet('boards', base + '/comments', auth).catch(() => null) // task details still useful without comments
+  ]);
+  if (!found || !found.task) throw new Error('Task not found');
+  return { task: found.task, comments: comments && comments.comments, total: comments && comments.total };
+}
+
+const HANDLERS = {
+  getTicket: (msg) => /^\d+$/.test(msg.id) && getAuth('support').then((auth) => apiGet('support', '/tickets/' + msg.id, auth)),
+  getTask: (msg) => /^\d+$/.test(msg.boardId) && /^\d+$/.test(msg.taskId) && getTask(msg.boardId, msg.taskId)
+};
+
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === 'openOptions') {
     chrome.runtime.openOptionsPage();
     return;
   }
-  if (msg.type !== 'getTicket' || !/^\d+$/.test(msg.id)) return;
+  const work = Object.hasOwn(HANDLERS, msg.type) && HANDLERS[msg.type](msg);
+  if (!work) return;
 
-  chrome.storage.local.get({ mode: 'cookie', username: '', appPassword: '' })
-    .then((settings) => apiGet('/tickets/' + msg.id, settings))
-    .then((data) => sendResponse({ ok: true, data }))
+  work.then((data) => sendResponse({ ok: true, data }))
     .catch((e) => sendResponse({ ok: false, error: e.message }));
   return true;
 });
