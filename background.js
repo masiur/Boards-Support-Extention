@@ -1,3 +1,5 @@
+// Firefox exposes the promise-based API as `browser`; Chrome as `chrome`.
+const ext = globalThis.browser || globalThis.chrome;
 const SITES = {
   support: { base: 'https://support.wpmanageninja.com', api: '/wp-json/fluent-support/v2' },
   // This site serves the WP REST API under /api instead of /wp-json.
@@ -17,7 +19,14 @@ async function getNonce(site, force) {
   return (nonces[site] = text);
 }
 
+// Firefox treats host_permissions as optional: without a grant, every fetch fails with a bare NetworkError.
+async function assertSiteAccess(site) {
+  const ok = await ext.permissions.contains({ origins: [SITES[site].base + '/*'] });
+  if (!ok) throw new Error(`No access to ${host(site)} yet. Grant it in the extension options.`);
+}
+
 async function apiGet(site, path, auth, retry = true) {
+  if (retry) await assertSiteAccess(site);
   let init;
   if (auth.mode === 'app_password') {
     if (!auth.username || !auth.appPassword) {
@@ -44,7 +53,7 @@ async function apiGet(site, path, auth, retry = true) {
 }
 
 async function getAuth(site) {
-  const s = await chrome.storage.local.get({ auth: null, mode: 'cookie', username: '', appPassword: '' });
+  const s = await ext.storage.local.get({ auth: null, mode: 'cookie', username: '', appPassword: '' });
   if (s.auth && s.auth[site]) return s.auth[site];
   // Settings saved before per-site auth existed apply to the support site.
   return site === 'support' ? { mode: s.mode, username: s.username, appPassword: s.appPassword } : { mode: 'cookie' };
@@ -66,9 +75,9 @@ const HANDLERS = {
   getTask: (msg) => /^\d+$/.test(msg.boardId) && /^\d+$/.test(msg.taskId) && getTask(msg.boardId, msg.taskId)
 };
 
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+ext.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === 'openOptions') {
-    chrome.runtime.openOptionsPage();
+    ext.runtime.openOptionsPage();
     return;
   }
   const work = Object.hasOwn(HANDLERS, msg.type) && HANDLERS[msg.type](msg);

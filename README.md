@@ -61,15 +61,29 @@ No server-side integration, no plugin to install on either site, no API keys to 
 
 ## Install
 
-1. Download the latest `boards-support-extension-vX.Y.Z.zip` from the
-   [**Releases**](https://github.com/masiur/Boards-Support-Extention/releases/latest) page and unzip it.
-2. Open `chrome://extensions` and enable **Developer mode** (top right).
-3. Click **Load unpacked** and select the unzipped folder.
-4. Reload your FluentBoards and Fluent Support tabs.
+Download the latest `boards-support-extension-vX.Y.Z.zip` from the
+[**Releases**](https://github.com/masiur/Boards-Support-Extention/releases/latest) page and unzip it.
+
+### Chrome, Brave, Edge, Arc (any Chromium browser)
+
+1. Open `chrome://extensions` (Brave: `brave://extensions`) and enable **Developer mode** (top right).
+2. Click **Load unpacked** and select the unzipped folder.
+3. Reload your FluentBoards and Fluent Support tabs.
 
 To update: download the new release, replace the folder contents, and hit ↻ on the extension card.
 
-> Works in any Chromium browser (Chrome, Edge, Brave, Arc…).
+### Firefox (128 or newer)
+
+1. Open `about:debugging#/runtime/this-firefox` and click **Load Temporary Add-on…**.
+2. Select `manifest.json` inside the unzipped folder.
+3. Click the extension's **Options** (or ⋯ → Manage → Options) and press **Grant access to both sites** —
+   Firefox does not grant site access automatically.
+4. Reload your FluentBoards and Fluent Support tabs.
+
+A temporary add-on is removed when Firefox quits, so repeat the steps after a restart. For a permanent install, Firefox
+requires the add-on to be signed: use **Firefox Developer Edition** or **Nightly**, set `xpinstall.signatures.required`
+to `false` in `about:config`, zip the folder contents (with `manifest.json` at the top level) and open the zip
+in Firefox.
 
 ## Authentication
 
@@ -99,15 +113,15 @@ The two sites are currently set for the author's setup. To point it at yours, ch
 | `view-tasks.js` | Runs on the support portal: renders a board task |
 | `inject.js` | Page-world hook on the boards site that reads ticket links from task API responses |
 | `background.js` | Authenticated read-only requests to both sites' REST APIs |
-| `options.html` / `options.js` | Auth settings |
+| `options.html` / `options.js` | Site access (Firefox) and auth settings |
 | `dev-test-tickets.html`, `dev-test-tasks.html` | Stubbed pages for UI testing with fake data (`python3 -m http.server`, then open them) |
 
 ## Releasing
 
 ```bash
-git tag v1.0.0 && git push origin v1.0.0
-git archive --format=zip --prefix=boards-support-extension/ -o boards-support-extension-v1.0.0.zip v1.0.0
-gh release create v1.0.0 boards-support-extension-v1.0.0.zip --title "v1.0.0" --generate-notes
+git tag v1.1.0 && git push origin v1.1.0
+git archive --format=zip --prefix=boards-support-extension/ -o boards-support-extension-v1.1.0.zip v1.1.0
+gh release create v1.1.0 boards-support-extension-v1.1.0.zip --title "v1.1.0" --generate-notes
 ```
 
 Keep the tag in sync with `version` in `manifest.json`.

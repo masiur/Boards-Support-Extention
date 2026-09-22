@@ -1,5 +1,7 @@
 // Shared drawer shell. A page-specific view (view-tickets.js / view-tasks.js) calls startDrawer(view)
 // and supplies: how to find item ids on the page, how to fetch one, and how to render it.
+// Firefox exposes the promise-based API as `browser`; Chrome as `chrome`.
+const ext = globalThis.browser || globalThis.chrome;
 const MIN_WIDTH = 360;
 const WIDE_AT = 760; // drawer width where summary and conversation sit side by side
 const LONG_MESSAGE = 900; // chars before a message is clamped behind "Show more"
@@ -122,10 +124,10 @@ const CSS = `
 `;
 
 const ICONS = {
-  refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>',
-  expand: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>',
-  shrink: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/></svg>',
-  minimize: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 17l5-5-5-5M6 17l5-5-5-5"/></svg>'
+  refresh: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>',
+  expand: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>',
+  shrink: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/></svg>',
+  minimize: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 17l5-5-5-5M6 17l5-5-5-5"/></svg>'
 };
 
 function el(tag, props, ...children) {
@@ -136,7 +138,8 @@ function el(tag, props, ...children) {
 
 function iconButton(icon, title, onClick) {
   const btn = el('button', { className: 'icon-btn', title });
-  btn.innerHTML = ICONS[icon]; // static markup from ICONS only
+  // ICONS holds static markup written in this file; parsed with a template so no live DOM ever sees a string.
+  btn.append(new DOMParser().parseFromString(ICONS[icon], 'image/svg+xml').documentElement);
   btn.addEventListener('click', onClick);
   return btn;
 }
@@ -222,7 +225,7 @@ function startDrawer(view) {
 
   function fetchItem(id, force) {
     if (force || !cache.has(id)) {
-      cache.set(id, chrome.runtime.sendMessage(view.request(id)).catch((e) => ({ ok: false, error: e.message })));
+      cache.set(id, ext.runtime.sendMessage(view.request(id)).catch((e) => ({ ok: false, error: e.message })));
     }
     return cache.get(id);
   }
@@ -232,7 +235,7 @@ function startDrawer(view) {
     if (!result) return [el('div', { className: 'state', textContent: `Loading ${view.label(id)}…` })];
     if (!result.ok) {
       const opts = el('a', { href: '#', textContent: 'Check extension options' });
-      opts.addEventListener('click', (e) => { e.preventDefault(); chrome.runtime.sendMessage({ type: 'openOptions' }); });
+      opts.addEventListener('click', (e) => { e.preventDefault(); ext.runtime.sendMessage({ type: 'openOptions' }); });
       return [el('div', { className: 'state error' },
         el('div', { textContent: `Could not load ${view.label(id)}` }),
         el('div', { textContent: result.error || 'Request failed' }), opts)];
@@ -241,7 +244,7 @@ function startDrawer(view) {
   }
 
   function saveUi() {
-    chrome.storage.local.set({ ui });
+    ext.storage.local.set({ ui });
   }
 
   function applySize(drawer) {
@@ -361,7 +364,7 @@ function startDrawer(view) {
   }
 
   async function start() {
-    Object.assign(ui, (await chrome.storage.local.get({ ui })).ui);
+    Object.assign(ui, (await ext.storage.local.get({ ui })).ui);
     new MutationObserver(rescan).observe(document.body, { childList: true, subtree: true, characterData: true });
     scan();
   }

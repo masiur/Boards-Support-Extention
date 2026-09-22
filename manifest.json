@@ -1,13 +1,14 @@
 {
   "manifest_version": 3,
   "name": "Boards ↔ Support Tickets",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": "Masiur",
   "homepage_url": "https://github.com/masiur/Boards-Support-Extention",
   "description": "Shows Fluent Support tickets inside FluentBoards tasks, and FluentBoards tasks inside Fluent Support tickets.",
   "permissions": ["storage"],
   "host_permissions": ["https://support.wpmanageninja.com/*", "https://lounge.authlab.io/*"],
-  "background": { "service_worker": "background.js" },
+  "background": { "service_worker": "background.js", "scripts": ["background.js"] },
+  "browser_specific_settings": { "gecko": { "id": "boards-support@masiur.dev", "strict_min_version": "128.0" } },
   "options_page": "options.html",
   "content_scripts": [
     {
